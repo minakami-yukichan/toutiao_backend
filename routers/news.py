@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from config.db_conf import get_db
-from crud.news import get_category
+from crud.news import get_category, get_news_list as crud_get_news_list, get_news_count as crud_get_news_count
 
 # 创建apirouter实例
 # prefix 路由前缀， tags 路由标签
@@ -26,4 +26,27 @@ async def get_news_categories(skip: int = 0, limit: int = 100, db: AsyncSession 
         "code": 200,
         "message": "获取新闻分类成功",
         "data": categories
+    }
+
+@router.get("/list")
+async def get_news_list(category_id: int = Query(..., alias="categoryId"), 
+                        page: int = 1, 
+                        page_size: int = Query(10, alias="pageSize", ge=1, le=100), 
+                        db: AsyncSession = Depends(get_db)):
+    """
+    获取新闻列表
+    """
+    # 先获取数据库中的新闻数据 -> 定义模型类 -> 封装获取数据方法
+    news_list = await crud_get_news_list(db, category_id=category_id, skip=(page - 1) * page_size, limit=page_size)
+    total = await crud_get_news_count(db, category_id=category_id)
+    # 跳过的 + 当前页的数量 >= 总数，说明没有更多数据了
+    has_more = (page * page_size) < total
+    return {
+        "code": 200,
+        "message": "获取新闻列表成功",
+        "data": {
+            "list": news_list,
+            "total": total,
+            "has_more": has_more
+        }
     }
