@@ -1,8 +1,7 @@
-from passlib.context import CryptContext
+import bcrypt
 
-# 创建密码上下文
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# 密码加密
 def get_hashed_password(password: str) -> str:
-    return pwd_context.hash(password)
+    password_bytes = password.encode()[:72]
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(password_bytes, salt).decode()
