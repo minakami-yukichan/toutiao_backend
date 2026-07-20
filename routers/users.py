@@ -5,6 +5,9 @@ from schemas.users import UserRequest
 from crud import users
 from starlette import status
 
+from utils.response import success_response
+from schemas.users import UserAuthResponse, UserInfoResponse
+
 router = APIRouter(prefix="/api/user", tags=["users"])
 
 @router.post("/register")
@@ -20,16 +23,18 @@ async def register_user(user_data: UserRequest, db: AsyncSession = Depends(get_d
     # 生成token
     token = await users.create_token(db, user.id)
 
-    return {
-        "code": 200,
-        "message": "注册成功",
-        "data": {
-            "token": token,
-            "userInfo": {
-                "id": user.id,
-                "username": user.username,
-                "bio": user.bio,
-                "avatar": user.avatar,
-            }
-        }
-    }
+    # return {
+    #     "code": 200,
+    #     "message": "注册成功",
+    #     "data": {
+    #         "token": token,
+    #         "userInfo": {
+    #             "id": user.id,
+    #             "username": user.username,
+    #             "bio": user.bio,
+    #             "avatar": user.avatar,
+    #         }
+    #     }
+    # }
+    response_data = UserAuthResponse(token=token, user_info=UserInfoResponse.model_validate(user))
+    return success_response(message="注册成功", data=response_data)
