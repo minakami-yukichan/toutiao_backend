@@ -7,6 +7,8 @@ from starlette import status
 
 from utils.response import success_response
 from schemas.users import UserAuthResponse, UserInfoResponse
+from utils.auth import get_current_user
+from models.users import User, UserToken
 
 router = APIRouter(prefix="/api/user", tags=["users"])
 
@@ -49,4 +51,10 @@ async def login_user(user_data: UserRequest, db: AsyncSession = Depends(get_db))
     response_data = UserAuthResponse(token=token, user_info=UserInfoResponse.model_validate(user))
 
     return success_response(message="登录成功", data=response_data)
+
+# 获取用户信息
+@router.get("/info")
+async def get_user_info(user: User = Depends(get_current_user)):
+    # 查token -> 封装crud -> 整合成工具函数 -> 路由导入使用
+    return success_response(message="获取用户信息成功", data=UserInfoResponse.model_validate(user))
 
