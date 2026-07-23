@@ -6,9 +6,10 @@ from crud import users
 from starlette import status
 
 from utils.response import success_response
-from schemas.users import UserAuthResponse, UserInfoResponse
+from schemas.users import UserAuthResponse, UserInfoResponse, UserUpdateRequest
 from utils.auth import get_current_user
 from models.users import User, UserToken
+
 
 router = APIRouter(prefix="/api/user", tags=["users"])
 
@@ -57,4 +58,11 @@ async def login_user(user_data: UserRequest, db: AsyncSession = Depends(get_db))
 async def get_user_info(user: User = Depends(get_current_user)):
     # 查token -> 封装crud -> 整合成工具函数 -> 路由导入使用
     return success_response(message="获取用户信息成功", data=UserInfoResponse.model_validate(user))
+
+# 修改用户信息
+@router.put("/update")
+async def update_user_info(user_data: UserUpdateRequest, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    user = await users.update_user(db, user.username, user_data)
+    # 修改用户信息逻辑: 验证token -> 更新用户信息 -> 返回响应结果
+    return success_response(message="修改用户信息成功", data=UserInfoResponse.model_validate(user))
 
