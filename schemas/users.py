@@ -42,3 +42,8 @@ class UserUpdateRequest(UserInfoBase):
     gender: Optional[str] = Field(None, max_length=10, description="性别")
     bio: Optional[str] = Field(None, max_length=500, description="个人简介")
     phone: Optional[str] = Field(None, max_length=20, description="手机号")
+
+# 更改用户密码类
+class UserChangePasswordRequest(BaseModel):
+    old_password: str = Field(..., alias="oldPassword", description="旧密码")
+    new_password: str = Field(..., min_length=6, alias="newPassword", description="新密码")

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from config.db_conf import get_db
-from schemas.users import UserRequest
+from schemas.users import UserRequest, UserUpdateRequest, UserChangePasswordRequest
 from crud import users
 from starlette import status
 
@@ -66,3 +66,13 @@ async def update_user_info(user_data: UserUpdateRequest, user: User = Depends(ge
     # 修改用户信息逻辑: 验证token -> 更新用户信息 -> 返回响应结果
     return success_response(message="修改用户信息成功", data=UserInfoResponse.model_validate(user))
 
+# 修改用户密码
+@router.put("/password")
+async def update_password(
+        password_data: UserChangePasswordRequest, 
+        user: User = Depends(get_current_user), 
+        db: AsyncSession = Depends(get_db)):
+    res_change_pwd = await users.change_password(db, user, password_data.old_password, password_data.new_password)
+    if not res_change_pwd:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="修改密码失败")
+    return success_response(message="修改密码成功")
