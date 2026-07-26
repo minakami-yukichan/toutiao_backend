@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import news, users
+from routers import news, users, favorite
 from utils.exception_handler import register_exception_handler
 
 app = FastAPI()
@@ -24,3 +24,5 @@ async def read_root():
 app.include_router(news.router)
 
 app.include_router(users.router)
+
+app.include_router(favorite.router)
