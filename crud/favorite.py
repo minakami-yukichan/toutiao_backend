@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.favorite import Favorite
@@ -9,3 +9,17 @@ async def is_news_favorite(db: AsyncSession, user_id: int, news_id: int) -> bool
     result = await db.execute(query)
     # 是否有收藏记录 返回bool类型
     return result.scalar_one_or_none() is not None
+
+async def add_favorite(db: AsyncSession, user_id: int, news_id: int) -> None:
+    # 创建收藏记录
+    favorite = Favorite(user_id=user_id, news_id=news_id)
+    db.add(favorite)
+    await db.commit()
+    await db.refresh(favorite)  # 刷新对象以获取数据库生成的字段（如ID）
+    return favorite
+
+async def remove_favorite(db: AsyncSession, user_id: int, news_id: int) -> bool:
+    stmt = delete(Favorite).where(Favorite.user_id == user_id, Favorite.news_id == news_id)
+    result = await db.execute(stmt)
+    await db.commit()
+    return result.rowcount  > 0
